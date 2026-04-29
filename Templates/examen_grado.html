@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ExamenGrado — Tu tutor personal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Lexend:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "tertiary-container": "#ddad00",
+          "primary-fixed-dim": "#6be026",
+          "secondary-container": "#2fb8ff",
+          "outline": "#6f7b64",
+          "on-tertiary-container": "#574300",
+          "on-primary-fixed-variant": "#1f5100",
+          "surface-container": "#eeeeed",
+          "inverse-on-surface": "#f1f0f0",
+          "on-tertiary": "#ffffff",
+          "surface-tint": "#2b6c00",
+          "on-tertiary-fixed": "#241a00",
+          "on-secondary-container": "#004666",
+          "tertiary-fixed-dim": "#f4bf00",
+          "tertiary-fixed": "#ffdf92",
+          "inverse-primary": "#6be026",
+          "surface-bright": "#faf9f9",
+          "on-primary-fixed": "#082100",
+          "error-container": "#ffdad6",
+          "surface-container-lowest": "#ffffff",
+          "secondary-fixed-dim": "#88ceff",
+          "on-primary": "#ffffff",
+          "surface-container-low": "#f4f3f3",
+          "surface-container-high": "#e9e8e8",
+          "inverse-surface": "#2f3131",
+          "on-surface-variant": "#3f4a36",
+          "secondary": "#006590",
+          "tertiary": "#755b00",
+          "primary-fixed": "#87fe45",
+          "primary": "#2b6c00",
+          "on-secondary-fixed": "#001e2e",
+          "background": "#faf9f9",
+          "surface-variant": "#e3e2e2",
+          "secondary-fixed": "#c8e6ff",
+          "primary-container": "#58cc02",
+          "on-surface": "#1a1c1c",
+          "on-background": "#1a1c1c",
+          "on-error-container": "#93000a",
+          "surface": "#faf9f9",
+          "on-primary-container": "#1e5000",
+          "error": "#ba1a1a",
+          "on-tertiary-fixed-variant": "#594400",
+          "on-secondary-fixed-variant": "#004c6e",
+          "surface-container-highest": "#e3e2e2",
+          "on-error": "#ffffff",
+          "outline-variant": "#becbb1",
+          "surface-dim": "#dadada",
+          "on-secondary": "#ffffff"
+        },
+        borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+        fontFamily: {
+          "headline-md": ["Plus Jakarta Sans"],
+          "body-lg": ["Lexend"],
+          "display-lg": ["Plus Jakarta Sans"],
+          "body-md": ["Lexend"],
+          "label-bold": ["Lexend"]
+        },
+        fontSize: {
+          "headline-md": ["24px", { lineHeight: "1.3", fontWeight: "700" }],
+          "body-lg": ["18px", { lineHeight: "1.5", fontWeight: "500" }],
+          "display-lg": ["32px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "800" }],
+          "body-md": ["16px", { lineHeight: "1.5", fontWeight: "400" }],
+          "label-bold": ["14px", { lineHeight: "1.2", fontWeight: "700" }]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .fill-icon { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .nav-active { background: #f0fce8; color: #2b6c00 !important; border-bottom-color: #2b6c00 !important; transform: translateY(2px); }
+  #toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+  #toast.hidden { opacity: 0; pointer-events: none; transform: translateY(20px); }
+  .chat-user { background: #2b6c00; color: white; border-radius: 1.5rem 1.5rem 0.25rem 1.5rem; }
+  .chat-bot { background: white; border: 2px solid #e3e2e2; border-radius: 1.5rem 1.5rem 1.5rem 0.25rem; }
+  .heat-0 { background: #e9e8e8; } .heat-1 { background: #bbf7a0; }
+  .heat-2 { background: #86efac; } .heat-3 { background: #4ade80; } .heat-4 { background: #16a34a; }
+  .progress-ring-circle { transition: stroke-dashoffset 0.8s ease; }
+  /* Gantt */
+  .gantt-bar { border-radius: 6px; position: relative; min-width: 4px; transition: opacity 0.2s; }
+  .gantt-bar:hover { opacity: 0.85; }
+  .gantt-today-line { position: absolute; top: 0; bottom: 0; width: 2px; background: #ba1a1a; z-index: 10; }
+  /* Folder cards */
+  .folder-card { transition: all 0.15s; }
+  .folder-card:hover { transform: translateY(-2px); }
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; }
+  .modal-box { background: white; border-radius: 1.5rem; padding: 2rem; max-width: 480px; width: 90%; border-bottom: 4px solid #e3e2e2; }
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+    #sidebar.open { transform: translateX(0); }
+    #main-content { margin-left: 0 !important; }
+    #topbar { margin-left: 0 !important; width: 100% !important; }
+  }
+</style>
+</head>
+<body class="bg-background font-body-md text-on-background">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="fixed left-0 top-0 h-screen flex flex-col py-6 bg-white w-72 border-r-4 border-gray-200 z-50">
+  <div class="px-8 mb-10">
+    <span class="text-3xl font-black text-green-600 italic">EXAMEN</span>
+    <p class="text-gray-400 font-headline-md text-label-bold mt-1 uppercase tracking-wide">Grado ICI</p>
+  </div>
+  <nav class="flex-1 overflow-y-auto">
+    <a onclick="navigate('dashboard')" class="nav-link flex items-center gap-3 p-4 mx-4 mb-2 text-gray-500 border-b-4 border-gray-200 rounded-lg hover:border-gray-300 transition-all duration-150 cursor-pointer" data-screen="dashboard">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span class="font-headline-md text-label-bold uppercase tracking-wide">Dashboard</span>
+    </a>
+    <a onclick="navigate('plan')" class="nav-link flex items-center gap-3 p-4 mx-4 mb-2 text-gray-500 border-b-4 border-gray-200 rounded-lg hover:border-gray-300 transition-all duration-150 cursor-pointer" data-screen="plan">
+      <span class="material-symbols-outlined">calendar_today</span>
+      <span class="font-headline-md text-label-bold uppercase tracking-wide">Plan de Estudio</span>
+    </a>
+    <a onclick="navigate('vault')" class="nav-link flex items-center gap-3 p-4 mx-4 mb-2 text-gray-500 border-b-4 border-gray-200 rounded-lg hover:border-gray-300 transition-all duration-150 cursor-pointer" data-screen="vault">
+      <span class="material-symbols-outlined">folder_open</span>
+      <span class="font-headline-md text-label-bold uppercase tracking-wide">Archivos</span>
+    </a>
+    <a onclick="navigate('tutor')" class="nav-link flex items-center gap-3 p-4 mx-4 mb-2 text-gray-500 border-b-4 border-gray-200 rounded-lg hover:border-gray-300 transition-all duration-150 cursor-pointer" data-screen="tutor">
+      <span class="material-symbols-outlined">smart_toy</span>
+      <span class="font-headline-md text-label-bold uppercase tracking-wide">AI Tutor</span>
+      <span class="ml-auto text-xs bg-yellow-100 text-yellow-700 font-bold px-2 py-0.5 rounded-full">Soon</span>
+    </a>
+    <a onclick="navigate('simulacro')" class="nav-link flex items-center gap-3 p-4 mx-4 mb-2 text-gray-500 border-b-4 border-gray-200 rounded-lg hover:border-gray-300 transition-all duration-150 cursor-pointer" data-screen="simulacro">
+      <span class="material-symbols-outlined">quiz</span>
+      <span class="font-headline-md text-label-bold uppercase tracking-wide">Simulacro</span>
+      <span class="ml-auto text-xs bg-yellow-100 text-yellow-700 font-bold px-2 py-0.5 rounded-full">Soon</span>
+    </a>
+    <a onclick="navigate('config')" class="nav-link flex items-center gap-3 p-4 mx-4 mb-2 text-gray-500 border-b-4 border-gray-200 rounded-lg hover:border-gray-300 transition-all duration-150 cursor-pointer" data-screen="config">
+      <span class="material-symbols-outlined">settings</span>
+      <span class="font-headline-md text-label-bold uppercase tracking-wide">Configuración</span>
+    </a>
+  </nav>
+  <div class="px-8 mt-auto flex items-center gap-4">
+    <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary ring-4 ring-primary-container/20 flex items-center justify-center bg-primary-container/20">
+      <span class="material-symbols-outlined text-primary text-2xl">person</span>
+    </div>
+    <div>
+      <p id="sidebar-nombre" class="font-headline-md text-label-bold text-on-surface">Estudiante</p>
+      <p class="text-xs text-primary font-bold">ICI · Examen Grado</p>
+    </div>
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar" class="flex items-center justify-between px-6 ml-72 w-[calc(100%-18rem)] bg-white h-20 border-b-4 border-gray-200 sticky top-0 z-40">
+  <div class="flex items-center gap-4">
+    <button onclick="toggleSidebar()" class="md:hidden w-10 h-10 flex items-center justify-center rounded-lg bg-surface-container text-on-surface-variant">
+      <span class="material-symbols-outlined">menu</span>
+    </button>
+    <h1 id="page-title" class="font-display-lg text-display-lg text-on-surface">Dashboard</h1>
+  </div>
+  <div class="flex items-center gap-4">
+    <div id="dias-badge" class="hidden items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full font-headline-md text-label-bold">
+      <span class="material-symbols-outlined text-lg">timer</span>
+      <span id="dias-texto">— días</span>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main id="main-content" class="ml-72 p-8 min-h-screen">
+
+  <!-- DASHBOARD -->
+  <div id="screen-dashboard" class="screen active">
+    <div class="grid grid-cols-12 gap-6 mb-8">
+      <div class="col-span-12 md:col-span-4">
+        <div class="bg-white p-6 rounded-3xl border-2 border-gray-200 border-b-4 border-gray-300 h-full flex flex-col items-center justify-center">
+          <svg width="140" height="140" viewBox="0 0 140 140">
+            <circle cx="70" cy="70" r="58" fill="none" stroke="#e9e8e8" stroke-width="12"/>
+            <circle id="ring-dominio" cx="70" cy="70" r="58" fill="none" stroke="#58cc02" stroke-width="12"
+              stroke-linecap="round" stroke-dasharray="364" stroke-dashoffset="364"
+              transform="rotate(-90 70 70)" class="progress-ring-circle"/>
+            <text id="ring-text" x="70" y="65" text-anchor="middle" font-size="32" font-weight="800" fill="#1a1c1c" font-family="Plus Jakarta Sans">0%</text>
+            <text x="70" y="88" text-anchor="middle" font-size="12" fill="#6f7b64" font-family="Lexend">Dominio Global</text>
+          </svg>
+          <p class="text-label-bold font-headline-md text-on-surface-variant uppercase tracking-wide mt-2">Nivel de preparación</p>
+        </div>
+      </div>
+      <div class="col-span-12 md:col-span-8 grid grid-cols-2 gap-4">
+        <div class="bg-white p-5 rounded-2xl border-2 border-gray-200 border-b-4 border-gray-300">
+          <div class="w-12 h-12 bg-secondary-container/20 text-secondary rounded-2xl flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined">folder</span>
+          </div>
+          <p class="text-3xl font-black text-on-surface" id="stat-archivos">0</p>
+          <p class="text-sm text-gray-500 font-body-md mt-1">Archivos subidos</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border-2 border-gray-200 border-b-4 border-gray-300">
+          <div class="w-12 h-12 bg-primary-container/20 text-primary rounded-2xl flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined">quiz</span>
+          </div>
+          <p class="text-3xl font-black text-on-surface" id="stat-simulacros">0</p>
+          <p class="text-sm text-gray-500 font-body-md mt-1">Simulacros hechos</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border-2 border-gray-200 border-b-4 border-gray-300">
+          <div class="w-12 h-12 bg-tertiary-container/20 text-tertiary rounded-2xl flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined">bar_chart</span>
+          </div>
+          <p class="text-3xl font-black text-on-surface" id="stat-score">—</p>
+          <p class="text-sm text-gray-500 font-body-md mt-1">Score promedio</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border-2 border-gray-200 border-b-4 border-gray-300">
+          <div class="w-12 h-12 bg-error-container/40 text-error rounded-2xl flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined">menu_book</span>
+          </div>
+          <p class="text-3xl font-black text-on-surface" id="stat-ramos">0</p>
+          <p class="text-sm text-gray-500 font-body-md mt-1">Ramos configurados</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-6 mb-6">
+      <div class="col-span-12 lg:col-span-7">
+        <div class="bg-white p-6 rounded-3xl border-2 border-gray-200 border-b-4 border-gray-300 h-full">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="font-headline-md text-on-surface flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">school</span>
+              Dominio por ramo
+            </h2>
+            <button onclick="navigate('config')" class="text-sm text-primary font-bold hover:underline">Gestionar →</button>
+          </div>
+          <div id="ramos-list" class="space-y-4">
+            <p class="text-gray-400 text-sm">Cargando ramos...</p>
+          </div>
+          <div id="no-ramos" class="hidden text-center py-8">
+            <span class="material-symbols-outlined text-5xl text-gray-300">menu_book</span>
+            <p class="text-gray-400 mt-2">No hay ramos configurados aún</p>
+            <button onclick="navigate('config')" class="mt-3 text-primary font-bold text-sm hover:underline">+ Agregar ramos en Configuración</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-span-12 lg:col-span-5">
+        <div class="bg-white p-6 rounded-3xl border-2 border-gray-200 border-b-4 border-gray-300 h-full">
+          <h2 class="font-headline-md text-on-surface flex items-center gap-2 mb-4">
+            <span class="material-symbols-outlined text-secondary">local_fire_department</span>
+            Actividad de estudio
+          </h2>
+          <div id="heatmap-grid" class="grid gap-1" style="grid-template-columns: repeat(13, 1fr);"></div>
+          <div class="flex items-center gap-2 mt-4">
+            <span class="text-xs text-gray-400">Menos</span>
+            <div class="w-4 h-4 rounded heat-0"></div>
+            <div class="w-4 h-4 rounded heat-1"></div>
+            <div class="w-4 h-4 rounded heat-2"></div>
+            <div class="w-4 h-4 rounded heat-3"></div>
+            <div class="w-4 h-4 rounded heat-4"></div>
+            <span class="text-xs text-gray-400">Más</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-span-12">
+        <div class="bg-primary p-6 rounded-3xl border-b-4 border-green-900 flex items-center gap-6">
+          <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-white text-3xl fill-icon">tips_and_updates</span>
+          </div>
+          <div class="flex-1">
+            <p class="font-headline-md text-label-bold text-primary-fixed uppercase tracking-wide mb-1">Recomendación de hoy</p>
+            <p id="recomendacion-dia" class="text-white font-headline-md">Configura tu fecha de examen y ramos para recibir tu plan personalizado.</p>
+          </div>
+          <button onclick="navigate('plan')" class="shrink-0 flex items-center gap-2 bg-white text-primary px-6 py-3 rounded-xl font-headline-md text-label-bold uppercase tracking-wider border-b-4 border-green-200 hover:translate-y-[2px] hover:border-b-2 transition-all">
+            <span class="material-symbols-outlined">calendar_today</span>
+            Ver Plan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAN DE ESTUDIO -->
+  <div id="screen-plan" class="screen">
+    <!-- Sin configuración -->
+    <div id="plan-no-config" class="hidden text-center py-20">
+      <span class="material-symbols-outlined text-7xl text-gray-300">calendar_today</span>
+      <h2 class="text-headline-md font-headline-md text-on-surface mt-4">Configura primero tu examen</h2>
+      <p class="text-gray-500 mt-2">Agrega tu fecha de examen y al menos un ramo para generar el plan.</p>
+      <button onclick="navigate('config')" class="mt-6 inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl font-headline-md text-label-bold uppercase tracking-wider border-b-4 border-green-800 hover:translate-y-[2px] hover:border-b-2 transition-all">
+        <span class="material-symbols-outlined">settings</span>
+        Ir a Configuración
+      </button>
+    </div>
+
+    <!-- Contenido plan -->
+    <div id="plan-content" class="hidden">
+      <!-- Header + controles -->
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <p id="plan-subtitle" class="text-on-surface font-bold text-lg"></p>
+          <p class="text-sm text-on-surface-variant mt-1">Carta Gantt — plan de preparación</p>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <!-- Modo de estudio -->
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wide">Modo:</label>
+            <select id="plan-modo" onchange="renderPlan()" class="bg-surface-container border-2 border-outline-variant rounded-xl py-2 px-3 text-sm font-bold focus:outline-none focus:border-primary">
+              <option value="prioridad">Por prioridad</option>
+              <option value="alfabetico">Alfabético</option>
+              <option value="aleatorio">Al azar</option>
+              <option value="creditos">Por créditos</option>
+              <option value="dominio">Menor dominio primero</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full font-headline-md text-label-bold">
+            <span class="material-symbols-outlined text-lg">timer</span>
+            <span id="plan-dias">— días</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leyenda ramos -->
+      <div id="plan-leyenda" class="flex flex-wrap gap-3 mb-6"></div>
+
+      <!-- Gantt -->
+      <div class="bg-white rounded-3xl border-2 border-gray-200 border-b-4 border-gray-300 overflow-hidden mb-6">
+        <div class="p-5 border-b-2 border-gray-100">
+          <h2 class="font-headline-md text-on-surface flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">view_timeline</span>
+            Carta Gantt
+          </h2>
+        </div>
+        <div class="overflow-x-auto">
+          <div id="gantt-container" class="p-5 min-w-[700px]"></div>
+        </div>
+      </div>
+
+      <!-- Semanas detalle -->
+      <div id="semanas-container" class="space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- VAULT / ARCHIVOS -->
+  <div id="screen-vault" class="screen">
+    <!-- Vista: carpetas de ramos -->
+    <div id="vault-folders-view">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="font-headline-md text-on-surface">Carpetas por Ramo</h2>
+          <p class="text-sm text-gray-400 mt-1">Cada ramo tiene su carpeta. Haz clic para ver y subir archivos.</p>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="navigate('config')" class="flex items-center gap-2 bg-surface-container text-on-surface-variant px-4 py-2 rounded-xl font-bold text-sm border-2 border-gray-200 border-b-4 border-gray-300 hover:border-primary hover:text-primary transition-all">
+            <span class="material-symbols-outlined text-sm">add</span>
+            Gestionar ramos
+          </button>
+        </div>
+      </div>
+      <!-- Sin ramos -->
+      <div id="vault-no-ramos" class="hidden text-center py-20">
+        <span class="material-symbols-outlined text-7xl text-gray-300">folder_open</span>
+        <p class="text-gray-500 mt-4 font-bold">No hay ramos configurados</p>
+        <p class="text-gray-400 text-sm mt-1">Crea ramos en Configuración para generar las carpetas automáticamente.</p>
+        <button onclick="navigate('config')" class="mt-4 inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold text-sm border-b-4 border-green-800 hover:translate-y-[2px] transition-all">
+          <span class="material-symbols-outlined text-sm">settings</span>
+          Configurar ramos
+        </button>
+      </div>
+      <div id="vault-folders-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+    </div>
+
+    <!-- Vista: archivos dentro de carpeta -->
+    <div id="vault-files-view" class="hidden">
+      <!-- Breadcrumb -->
+      <div class="flex items-center gap-2 mb-6">
+        <button onclick="backToFolders()" class="flex items-center gap-1 text-primary font-bold hover:underline text-sm">
+          <span class="material-symbols-outlined text-lg">arrow_back</span>
+          Todos los ramos
+        </button>
+        <span class="text-gray-400">/</span>
+        <div class="flex items-center gap-2">
+          <div id="current-folder-dot" class="w-3 h-3 rounded-full"></div>
+          <span id="current-folder-name" class="font-bold text-on-surface"></span>
+        </div>
+      </div>
+      <!-- Upload zone -->
+      <div id="upload-drop-zone" class="border-2 border-dashed border-outline-variant rounded-2xl p-8 text-center mb-6 cursor-pointer hover:border-primary transition-all"
+           onclick="document.getElementById('upload-input').click()"
+           ondragover="event.preventDefault();this.classList.add('border-primary')"
+           ondragleave="this.classList.remove('border-primary')"
+           ondrop="handleDrop(event)">
+        <span class="material-symbols-outlined text-4xl text-gray-300">cloud_upload</span>
+        <p class="font-bold text-on-surface mt-2">Arrastra o haz clic para subir</p>
+        <p class="text-gray-400 text-sm mt-1">PDF, DOCX, TXT, PNG, JPG — máx. 32MB</p>
+        <input id="upload-input" type="file" class="hidden" accept=".pdf,.docx,.txt,.png,.jpg,.jpeg" multiple onchange="handleFileSelect(this)"/>
+      </div>
+      <!-- Tipo select -->
+      <div class="flex items-center gap-3 mb-5">
+        <label class="text-sm font-bold text-on-surface-variant uppercase tracking-wide">Tipo de archivo:</label>
+        <select id="upload-tipo" class="bg-surface-container border-2 border-outline-variant rounded-xl py-2 px-4 text-sm focus:outline-none focus:border-primary">
+          <option value="Apuntes">Apuntes</option>
+          <option value="Ejercicios">Ejercicios</option>
+          <option value="Examen anterior">Examen anterior</option>
+          <option value="Resumen">Resumen</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <!-- Files grid -->
+      <div id="archivos-list" class="grid grid-cols-12 gap-4">
+        <p class="col-span-12 text-gray-400 text-sm">No hay archivos en esta carpeta.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI TUTOR (standby) -->
+  <div id="screen-tutor" class="screen">
+    <div class="text-center py-24">
+      <div class="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+        <span class="material-symbols-outlined text-5xl text-primary fill-icon">smart_toy</span>
+      </div>
+      <h2 class="font-display-lg text-on-surface mb-3">AI Tutor — Próximamente</h2>
+      <p class="text-gray-500 max-w-md mx-auto">El tutor IA usará tus archivos para responder preguntas y explicar conceptos de cada ramo. Primero configura tus ramos y sube tus apuntes.</p>
+      <div class="flex gap-4 justify-center mt-8">
+        <button onclick="navigate('config')" class="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold border-b-4 border-green-800 hover:translate-y-[2px] transition-all">
+          <span class="material-symbols-outlined">settings</span>Configurar ramos
+        </button>
+        <button onclick="navigate('vault')" class="flex items-center gap-2 bg-secondary text-white px-6 py-3 rounded-xl font-bold border-b-4 border-sky-800 hover:translate-y-[2px] transition-all">
+          <span class="material-symbols-outlined">folder_open</span>Subir archivos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIMULACRO (standby) -->
+  <div id="screen-simulacro" class="screen">
+    <div class="text-center py-24">
+      <div class="w-24 h-24 bg-tertiary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+        <span class="material-symbols-outlined text-5xl text-tertiary fill-icon">quiz</span>
+      </div>
+      <h2 class="font-display-lg text-on-surface mb-3">Simulacro — Próximamente</h2>
+      <p class="text-gray-500 max-w-md mx-auto">El simulacro generará preguntas automáticamente a partir de tus archivos y te dará feedback detallado. Requiere que el AI Tutor esté activo.</p>
+      <div class="flex gap-4 justify-center mt-8">
+        <button onclick="navigate('vault')" class="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold border-b-4 border-green-800 hover:translate-y-[2px] transition-all">
+          <span class="material-symbols-outlined">folder_open</span>Subir archivos primero
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIGURACIÓN -->
+  <div id="screen-config" class="screen">
+    <div class="grid grid-cols-12 gap-6">
+      <!-- Datos generales -->
+      <div class="col-span-12 lg:col-span-6">
+        <div class="bg-white p-7 rounded-3xl border-2 border-gray-200 border-b-4 border-gray-300">
+          <h2 class="font-headline-md text-on-surface flex items-center gap-2 mb-5">
+            <span class="material-symbols-outlined text-primary">manage_accounts</span>
+            Datos del examen
+          </h2>
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm font-bold text-on-surface-variant uppercase tracking-wide mb-1 block">Tu nombre</label>
+              <input id="cfg-nombre" type="text" placeholder="Ej: Valentina Gómez"
+                class="w-full bg-surface-container border-2 border-outline-variant rounded-xl py-3 px-4 focus:outline-none focus:border-primary transition-all font-body-md"/>
+            </div>
+            <div>
+              <label class="text-sm font-bold text-on-surface-variant uppercase tracking-wide mb-1 block">Fecha del examen</label>
+              <input id="cfg-fecha" type="date"
+                class="w-full bg-surface-container border-2 border-outline-variant rounded-xl py-3 px-4 focus:outline-none focus:border-primary transition-all font-body-md"/>
+            </div>
+            <div>
+              <label class="text-sm font-bold text-on-surface-variant uppercase tracking-wide mb-1 block">Horas de estudio diarias</label>
+              <div class="flex gap-2">
+                <button onclick="setHoras(2)" data-h="2" class="horas-btn flex-1 py-3 border-2 border-gray-200 border-b-4 border-gray-300 rounded-xl font-bold text-sm hover:border-primary transition-all">2h</button>
+                <button onclick="setHoras(3)" data-h="3" class="horas-btn flex-1 py-3 border-2 border-gray-200 border-b-4 border-gray-300 rounded-xl font-bold text-sm hover:border-primary transition-all">3h</button>
+                <button onclick="setHoras(4)" data-h="4" class="horas-btn flex-1 py-3 border-2 border-gray-200 border-b-4 border-gray-300 rounded-xl font-bold text-sm hover:border-primary transition-all">4h</button>
+                <button onclick="setHoras(6)" data-h="6" class="horas-btn flex-1 py-3 border-2 border-gray-200 border-b-4 border-gray-300 rounded-xl font-bold text-sm hover:border-primary transition-all">6h</button>
+              </div>
+            </div>
+            <button onclick="saveConfig()" class="w-full flex items-center justify-center gap-2 bg-primary text-white py-4 rounded-xl font-headline-md text-label-bold uppercase tracking-wider border-b-4 border-green-800 hover:translate-y-[2px] hover:border-b-2 active:translate-y-[4px] active:border-b-0 transition-all mt-2">
+              <span class="material-symbols-outlined">save</span>
+              Guardar configuración
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ramos -->
+      <div class="col-span-12 lg:col-span-6">
+        <div class="bg-white p-7 rounded-3xl border-2 border-gray-200 border-b-4 border-gray-300">
+          <h2 class="font-headline-md text-on-surface flex items-center gap-2 mb-5">
+            <span class="material-symbols-outlined text-secondary">menu_book</span>
+            Ramos del examen
+          </h2>
+          <!-- Form agregar ramo -->
+          <div class="bg-surface-container-low rounded-2xl p-4 mb-4 border-2 border-outline-variant">
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-3">Agregar nuevo ramo</p>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <input id="ramo-nombre" type="text" placeholder="Nombre del ramo"
+                class="col-span-2 bg-white border-2 border-outline-variant rounded-xl py-2 px-4 focus:outline-none focus:border-secondary transition-all font-body-md text-sm"
+                onkeydown="if(event.key==='Enter') addRamo()"/>
+              <div>
+                <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1 block">Créditos</label>
+                <input id="ramo-creditos" type="number" value="8" min="1" max="20"
+                  class="w-full bg-white border-2 border-outline-variant rounded-xl py-2 px-4 focus:outline-none focus:border-secondary font-body-md text-sm"/>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1 block">Ponderación %</label>
+                <input id="ramo-pond" type="number" value="25" min="1" max="100"
+                  class="w-full bg-white border-2 border-outline-variant rounded-xl py-2 px-4 focus:outline-none focus:border-secondary font-body-md text-sm"/>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1 block">Color</label>
+                <input id="ramo-color" type="color" value="#58cc02"
+                  class="w-full h-10 bg-white border-2 border-outline-variant rounded-xl cursor-pointer"/>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-1 block">Prioridad</label>
+                <select id="ramo-prioridad"
+                  class="w-full bg-white border-2 border-outline-variant rounded-xl py-2 px-4 focus:outline-none focus:border-secondary font-body-md text-sm">
+                  <option value="alta">Alta</option>
+                  <option value="media" selected>Media</option>
+                  <option value="baja">Baja</option>
+                </select>
+              </div>
+            </div>
+            <button onclick="addRamo()" class="w-full flex items-center justify-center gap-2 bg-secondary text-white py-3 rounded-xl font-headline-md text-label-bold uppercase tracking-wide border-b-4 border-sky-800 hover:translate-y-[2px] hover:border-b-2 transition-all">
+              <span class="material-symbols-outlined">add</span>
+              Agregar ramo
+            </button>
+          </div>
+          <!-- Lista ramos -->
+          <div id="cfg-ramos-list" class="space-y-2 max-h-72 overflow-y-auto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-50 hidden">
+  <div id="toast-inner" class="bg-green-600 text-white p-4 rounded-2xl shadow-xl flex items-center justify-between border-b-4 border-green-800">
+    <div class="flex items-center gap-3">
+      <span id="toast-icon" class="material-symbols-outlined">check_circle</span>
+      <span id="toast-msg" class="font-headline-md text-label-bold uppercase tracking-wide text-sm"></span>
+    </div>
+    <button onclick="hideToast()"><span class="material-symbols-outlined">close</span></button>
+  </div>
+</div>
+
+<!-- MODAL EDITAR RAMO -->
+<div id="modal-edit" class="modal-overlay hidden" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal-box">
+    <h3 class="font-headline-md text-on-surface mb-4 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">edit</span>
+      Editar Ramo
+    </h3>
+    <input type="hidden" id="edit-ramo-id"/>
+    <div class="space-y-3">
+      <input id="edit-ramo-nombre" type="text" placeholder="Nombre" class="w-full bg-surface-container border-2 border-outline-variant rounded-xl py-2 px-4 focus:outline-none focus:border-primary text-sm"/>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Créditos</label>
+          <input id="edit-ramo-creditos" type="number" min="1" max="20" class="w-full bg-surface-container border-2 border-outline-variant rounded-xl py-2 px-4 text-sm"/>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Ponderación %</label>
+          <input id="edit-ramo-pond" type="number" min="1" max="100" class="w-full bg-surface-container border-2 border-outline-variant rounded-xl py-2 px-4 text-sm"/>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Color</label>
+          <input id="edit-ramo-color" type="color" class="w-full h-10 bg-surface-container border-2 border-outline-variant rounded-xl cursor-pointer"/>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Prioridad</label>
+          <select id="edit-ramo-prioridad" class="w-full bg-surface-container border-2 border-outline-variant rounded-xl py-2 px-4 text-sm">
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Dominio actual % (0-100)</label>
+        <input id="edit-ramo-dominio" type="number" min="0" max="100" class="w-full bg-surface-container border-2 border-outline-variant rounded-xl py-2 px-4 text-sm"/>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-5">
+      <button onclick="closeEditModal()" class="flex-1 py-3 border-2 border-gray-200 border-b-4 border-gray-300 rounded-xl font-bold text-sm hover:border-error hover:text-error transition-all">Cancelar</button>
+      <button onclick="saveEditRamo()" class="flex-1 py-3 bg-primary text-white border-b-4 border-green-800 rounded-xl font-bold text-sm hover:translate-y-[2px] transition-all">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// STORAGE (localStorage como backend)
+// ═══════════════════════════════════════════
+const DB = {
+  get(key) {
+    try { return JSON.parse(localStorage.getItem('eg_' + key)); } catch { return null; }
+  },
+  set(key, val) {
+    localStorage.setItem('eg_' + key, JSON.stringify(val));
+  },
+  getRamos() { return this.get('ramos') || []; },
+  setRamos(r) { this.set('ramos', r); },
+  getConfig() { return this.get('config') || {}; },
+  setConfig(c) { this.set('config', c); },
+  getArchivos() { return this.get('archivos') || []; },
+  setArchivos(a) { this.set('archivos', a); },
+  getSesiones() { return this.get('sesiones') || []; },
+  getSimulacros() { return this.get('simulacros') || []; },
+};
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const state = {
+  currentScreen: 'dashboard',
+  ramos: [],
+  archivos: [],
+  config: {},
+  currentFolderRamoId: null,
+  horasConfig: 3,
+};
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+const pageTitles = {
+  dashboard: 'Dashboard', plan: 'Plan de Estudio',
+  vault: 'Archivos', tutor: 'AI Tutor',
+  simulacro: 'Simulacro', config: 'Configuración'
+};
+
+function navigate(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('nav-active'));
+  const link = document.querySelector(`[data-screen="${screen}"]`);
+  if (link) link.classList.add('nav-active');
+  document.getElementById('page-title').textContent = pageTitles[screen] || screen;
+  state.currentScreen = screen;
+  document.getElementById('sidebar').classList.remove('open');
+
+  if (screen === 'dashboard') loadDashboard();
+  if (screen === 'plan') loadPlan();
+  if (screen === 'vault') loadVault();
+  if (screen === 'config') loadConfig();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg, type = 'success') {
+  const inner = document.getElementById('toast-inner');
+  document.getElementById('toast-msg').textContent = msg;
+  document.getElementById('toast-icon').textContent =
+    type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
+  inner.className = `text-white p-4 rounded-2xl shadow-xl flex items-center justify-between border-b-4 ${
+    type === 'success' ? 'bg-green-600 border-green-800' :
+    type === 'error' ? 'bg-red-600 border-red-900' : 'bg-secondary border-sky-800'}`;
+  document.getElementById('toast').classList.remove('hidden');
+  setTimeout(() => hideToast(), 3500);
+}
+function hideToast() { document.getElementById('toast').classList.add('hidden'); }
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function escHtml(t) { return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function formatDate(d) {
+  const dt = new Date(d);
+  return dt.toLocaleDateString('es-CL', { day:'2-digit', month:'short', year:'2-digit' });
+}
+function diasHasta(fechaStr) {
+  if (!fechaStr) return null;
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const ex = new Date(fechaStr + 'T00:00:00');
+  return Math.ceil((ex - hoy) / 86400000);
+}
+function prioridadVal(p) { return p === 'alta' ? 0 : p === 'media' ? 1 : 2; }
+
+// ═══════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════
+function loadDashboard() {
+  const ramos = DB.getRamos();
+  const archivos = DB.getArchivos();
+  const cfg = DB.getConfig();
+  const simulacros = DB.getSimulacros();
+
+  state.ramos = ramos;
+  state.config = cfg;
+
+  document.getElementById('stat-archivos').textContent = archivos.length;
+  document.getElementById('stat-simulacros').textContent = simulacros.length;
+  document.getElementById('stat-ramos').textContent = ramos.length;
+
+  const scores = simulacros.filter(s => s.score != null).map(s => s.score);
+  document.getElementById('stat-score').textContent = scores.length
+    ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) + '%' : '—';
+
+  // Dominio global
+  const domGlobal = ramos.length
+    ? Math.round(ramos.reduce((a,r) => a + (r.dominio || 0), 0) / ramos.length)
+    : 0;
+  const circle = document.getElementById('ring-dominio');
+  const circumference = 2 * Math.PI * 58;
+  circle.style.strokeDashoffset = circumference - (domGlobal / 100) * circumference;
+  document.getElementById('ring-text').textContent = domGlobal + '%';
+
+  // Días badge
+  const dias = diasHasta(cfg.fecha_examen);
+  if (dias !== null && dias >= 0) {
+    document.getElementById('dias-badge').classList.remove('hidden');
+    document.getElementById('dias-badge').classList.add('flex');
+    document.getElementById('dias-texto').textContent = dias + ' días';
+  } else {
+    document.getElementById('dias-badge').classList.add('hidden');
+  }
+
+  // Ramos list
+  const list = document.getElementById('ramos-list');
+  const noR = document.getElementById('no-ramos');
+  if (!ramos.length) {
+    list.innerHTML = '';
+    noR.classList.remove('hidden');
+  } else {
+    noR.classList.add('hidden');
+    list.innerHTML = ramos.map(r => {
+      const dom = r.dominio || 0;
+      return `<div class="flex items-center gap-3">
+        <div class="w-3 h-3 rounded-full shrink-0" style="background:${r.color}"></div>
+        <span class="text-sm font-bold text-on-surface flex-1 truncate">${escHtml(r.nombre)}</span>
+        <div class="flex-1 h-3 bg-surface-container rounded-full overflow-hidden mx-2">
+          <div class="h-full rounded-full transition-all" style="width:${dom}%;background:${r.color}"></div>
+        </div>
+        <span class="text-sm font-bold w-10 text-right" style="color:${r.color}">${dom}%</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Heatmap
+  buildHeatmap(DB.getSesiones());
+
+  // Recomendación
+  const rec = document.getElementById('recomendacion-dia');
+  if (!ramos.length || !cfg.fecha_examen) {
+    rec.textContent = 'Configura tu fecha de examen y ramos para recibir tu plan personalizado.';
+  } else {
+    const sinDom = ramos.filter(r => (r.dominio || 0) < 40);
+    if (sinDom.length) {
+      rec.textContent = `Enfócate en "${sinDom[0].nombre}" — dominio bajo. ¡Es el momento de subirlo!`;
+    } else {
+      const pending = ramos.filter(r => (r.dominio || 0) < 80);
+      rec.textContent = pending.length
+        ? `Sigue reforzando "${pending[0].nombre}" para llegar al 80% de dominio.`
+        : '¡Excelente! Todos los ramos están sobre 80%. Repasa con simulacros.';
+    }
+  }
+}
+
+function buildHeatmap(sesiones) {
+  const map = {};
+  sesiones.forEach(s => { map[s.fecha] = (map[s.fecha] || 0) + s.minutos; });
+  const grid = document.getElementById('heatmap-grid');
+  const today = new Date();
+  const days = [];
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    days.push(d.toISOString().split('T')[0]);
+  }
+  grid.innerHTML = days.map(date => {
+    const mins = map[date] || 0;
+    let lvl = 0;
+    if (mins > 0) lvl = 1;
+    if (mins > 30) lvl = 2;
+    if (mins > 60) lvl = 3;
+    if (mins > 120) lvl = 4;
+    return `<div class="w-full aspect-square rounded heat-${lvl} cursor-pointer transition-transform hover:scale-125" title="${date}: ${mins} min"></div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// PLAN DE ESTUDIO + GANTT
+// ═══════════════════════════════════════════
+function loadPlan() {
+  const ramos = DB.getRamos();
+  const cfg = DB.getConfig();
+  state.ramos = ramos;
+  state.config = cfg;
+
+  const dias = diasHasta(cfg.fecha_examen);
+  const sinFecha = !cfg.fecha_examen || dias === null || dias < 0;
+  const sinRamos = !ramos.length;
+
+  if (sinFecha || sinRamos) {
+    document.getElementById('plan-no-config').classList.remove('hidden');
+    document.getElementById('plan-content').classList.add('hidden');
+    return;
+  }
+
+  document.getElementById('plan-no-config').classList.add('hidden');
+  document.getElementById('plan-content').classList.remove('hidden');
+  document.getElementById('plan-subtitle').textContent =
+    cfg.nombre_alumno ? `Plan de ${escHtml(cfg.nombre_alumno)}` : 'Plan de estudio';
+  document.getElementById('plan-dias').textContent = dias + ' días restantes';
+
+  renderPlan();
+}
+
+function ordenarRamos(ramos, modo) {
+  const copia = [...ramos];
+  switch (modo) {
+    case 'alfabetico':
+      return copia.sort((a,b) => a.nombre.localeCompare(b.nombre));
+    case 'aleatorio':
+      return copia.sort(() => Math.random() - 0.5);
+    case 'creditos':
+      return copia.sort((a,b) => b.creditos - a.creditos);
+    case 'dominio':
+      return copia.sort((a,b) => (a.dominio||0) - (b.dominio||0));
+    case 'prioridad':
+    default:
+      return copia.sort((a,b) => prioridadVal(a.prioridad) - prioridadVal(b.prioridad));
+  }
+}
+
+function renderPlan() {
+  const ramos = DB.getRamos();
+  const cfg = DB.getConfig();
+  const dias = diasHasta(cfg.fecha_examen);
+  const horas_dia = cfg.horas_diarias || 3;
+  const modo = document.getElementById('plan-modo').value;
+
+  const ordered = ordenarRamos(ramos, modo);
+
+  // Leyenda
+  const leyenda = document.getElementById('plan-leyenda');
+  leyenda.innerHTML = ordered.map(r => `
+    <div class="flex items-center gap-2 bg-white rounded-full px-3 py-1 border-2 border-gray-200 text-sm font-bold">
+      <div class="w-3 h-3 rounded-full" style="background:${r.color}"></div>
+      <span>${escHtml(r.nombre)}</span>
+      <span class="text-gray-400 font-normal">${r.ponderacion}%</span>
+    </div>`).join('');
+
+  // Calcular distribución por ponderación
+  const totalPond = ordered.reduce((a,r) => a + (r.ponderacion||25), 0);
+  const totalHoras = dias * horas_dia;
+
+  // Asignar bloques de días por ramo según ponderación y prioridad
+  // Estrategia: primero los ramos con menor dominio o mayor prioridad
+  const bloques = ordered.map((r, i) => {
+    const frac = (r.ponderacion || 25) / totalPond;
+    const horasRamo = Math.max(1, Math.round(totalHoras * frac));
+    const diasRamo = Math.max(1, Math.round(horasRamo / horas_dia));
+    return { ramo: r, horas: horasRamo, diasAsignados: diasRamo };
+  });
+
+  // Repartir días desde hoy
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  let cursor = 0; // días desde hoy
+  const ganttData = bloques.map(b => {
+    const inicio = cursor;
+    cursor += b.diasAsignados;
+    return { ...b, inicioOffset: inicio, finOffset: cursor - 1 };
+  });
+
+  renderGantt(ganttData, dias);
+  renderSemanas(ganttData, horas_dia);
+}
+
+function renderGantt(ganttData, totalDias) {
+  const container = document.getElementById('gantt-container');
+  if (!ganttData.length) { container.innerHTML = ''; return; }
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const LABEL_W = 140;
+  const BAR_AREA = Math.max(600, container.offsetWidth - LABEL_W - 40);
+  const px_per_day = BAR_AREA / totalDias;
+  const ROW_H = 48;
+
+  // Header: meses/semanas
+  const meses = [];
+  let d = new Date(hoy);
+  let lastMes = -1;
+  for (let i = 0; i < totalDias; i++) {
+    const m = d.getMonth();
+    if (m !== lastMes) {
+      meses.push({ dia: i, label: d.toLocaleDateString('es-CL', {month:'short', year:'2-digit'}) });
+      lastMes = m;
+    }
+    d.setDate(d.getDate() + 1);
+  }
+
+  // Línea de hoy (día 0)
+  const hoyPx = LABEL_W + 0; // siempre al inicio
+
+  let html = `<div style="position:relative;">`;
+
+  // Header de meses
+  html += `<div style="display:flex;margin-left:${LABEL_W}px;margin-bottom:8px;position:relative;height:20px;">`;
+  meses.forEach(m => {
+    html += `<div style="position:absolute;left:${m.dia * px_per_day}px;font-size:11px;font-weight:700;color:#6f7b64;white-space:nowrap;">${m.label}</div>`;
+  });
+  html += `</div>`;
+
+  // Barras
+  html += `<div style="position:relative;">`;
+  // Línea de hoy
+  html += `<div style="position:absolute;left:${LABEL_W}px;top:0;bottom:0;width:2px;background:#ba1a1a;z-index:10;" title="Hoy"></div>`;
+
+  ganttData.forEach((b, i) => {
+    const left = LABEL_W + b.inicioOffset * px_per_day;
+    const width = Math.max(8, b.diasAsignados * px_per_day);
+    const dom = b.ramo.dominio || 0;
+
+    const fechaIni = new Date(hoy); fechaIni.setDate(fechaIni.getDate() + b.inicioOffset);
+    const fechaFin = new Date(hoy); fechaFin.setDate(fechaFin.getDate() + b.finOffset);
+    const fIni = fechaIni.toLocaleDateString('es-CL',{day:'2-digit',month:'short'});
+    const fFin = fechaFin.toLocaleDateString('es-CL',{day:'2-digit',month:'short'});
+
+    html += `
+      <div style="display:flex;align-items:center;height:${ROW_H}px;margin-bottom:6px;position:relative;">
+        <div style="width:${LABEL_W}px;padding-right:12px;flex-shrink:0;">
+          <div style="font-size:12px;font-weight:700;color:#1a1c1c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(b.ramo.nombre)}">${escHtml(b.ramo.nombre)}</div>
+          <div style="font-size:10px;color:#6f7b64;">Dom. ${dom}%</div>
+        </div>
+        <div style="position:absolute;left:${left}px;width:${width}px;height:${ROW_H - 10}px;background:${b.ramo.color};border-radius:8px;display:flex;align-items:center;padding:0 8px;box-shadow:0 2px 4px rgba(0,0,0,0.15);cursor:pointer;transition:opacity 0.2s;"
+             title="${escHtml(b.ramo.nombre)}: ${fIni} → ${fFin} (${b.horas}h · ${b.diasAsignados} días)"
+             onmouseenter="this.style.opacity=0.8" onmouseleave="this.style.opacity=1">
+          ${width > 60 ? `<span style="font-size:11px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${fIni} → ${fFin}</span>` : ''}
+        </div>
+      </div>`;
+  });
+  html += `</div>`;
+
+  // Línea final (examen)
+  html += `<div style="margin-left:${LABEL_W}px;margin-top:8px;display:flex;align-items:center;gap:6px;">
+    <div style="width:12px;height:12px;border-radius:50%;background:#ba1a1a;"></div>
+    <span style="font-size:12px;font-weight:700;color:#ba1a1a;">EXAMEN</span>
+  </div>`;
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+function renderSemanas(ganttData, horas_dia) {
+  const container = document.getElementById('semanas-container');
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+
+  let html = '';
+  ganttData.forEach((b, i) => {
+    const fechaIni = new Date(hoy); fechaIni.setDate(fechaIni.getDate() + b.inicioOffset);
+    const fechaFin = new Date(hoy); fechaFin.setDate(fechaFin.getDate() + b.finOffset);
+    const dom = b.ramo.dominio || 0;
+    const faseLabel = dom < 40 ? 'Estudio base' : dom < 70 ? 'Refuerzo' : 'Repaso final';
+    const prioLabel = { alta: '🔴 Alta', media: '🟡 Media', baja: '🟢 Baja' }[b.ramo.prioridad] || 'Media';
+
+    html += `
+      <div class="bg-white rounded-2xl border-2 border-gray-200 border-b-4 border-gray-300 overflow-hidden">
+        <div class="flex items-center gap-4 px-6 py-4 border-b-2 border-gray-100">
+          <div class="w-4 h-4 rounded-full shrink-0" style="background:${b.ramo.color}"></div>
+          <div class="flex-1">
+            <span class="font-black text-on-surface">${escHtml(b.ramo.nombre)}</span>
+            <span class="text-sm text-gray-400 ml-3">${fechaIni.toLocaleDateString('es-CL',{day:'2-digit',month:'short'})} → ${fechaFin.toLocaleDateString('es-CL',{day:'2-digit',month:'short'})}</span>
+          </div>
+          <span class="bg-surface-container text-on-surface-variant px-3 py-1 rounded-full text-sm font-bold">${b.horas}h</span>
+        </div>
+        <div class="p-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="bg-surface-container-low rounded-xl p-3 text-center">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Días</p>
+            <p class="text-xl font-black text-on-surface">${b.diasAsignados}</p>
+          </div>
+          <div class="bg-surface-container-low rounded-xl p-3 text-center">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Horas/día</p>
+            <p class="text-xl font-black text-on-surface">${horas_dia}h</p>
+          </div>
+          <div class="bg-surface-container-low rounded-xl p-3 text-center">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Dominio actual</p>
+            <p class="text-xl font-black" style="color:${b.ramo.color}">${dom}%</p>
+          </div>
+          <div class="bg-surface-container-low rounded-xl p-3 text-center">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Prioridad</p>
+            <p class="text-sm font-black text-on-surface">${prioLabel}</p>
+          </div>
+        </div>
+        <div class="px-6 pb-5">
+          <div class="flex items-center gap-3 bg-surface-container-low rounded-xl p-3">
+            <span class="material-symbols-outlined text-primary text-sm">tips_and_updates</span>
+            <p class="text-sm text-on-surface"><strong>Fase:</strong> ${faseLabel} · ${b.ramo.creditos} cr · ${b.ramo.ponderacion}% ponderación</p>
+          </div>
+        </div>
+      </div>`;
+  });
+  container.innerHTML = html || '<p class="text-gray-400 text-sm">No hay datos para mostrar.</p>';
+}
+
+// ═══════════════════════════════════════════
+// VAULT / ARCHIVOS
+// ═══════════════════════════════════════════
+function loadVault() {
+  const ramos = DB.getRamos();
+  state.ramos = ramos;
+  state.archivos = DB.getArchivos();
+
+  // Mostrar vista de carpetas
+  document.getElementById('vault-folders-view').classList.remove('hidden');
+  document.getElementById('vault-files-view').classList.add('hidden');
+
+  const grid = document.getElementById('vault-folders-grid');
+  const noR = document.getElementById('vault-no-ramos');
+
+  if (!ramos.length) {
+    noR.classList.remove('hidden');
+    grid.innerHTML = '';
+    return;
+  }
+  noR.classList.add('hidden');
+
+  grid.innerHTML = ramos.map(r => {
+    const count = state.archivos.filter(a => a.ramo_id === r.id).length;
+    return `
+      <div class="folder-card bg-white rounded-2xl border-2 border-gray-200 border-b-4 border-gray-300 p-5 cursor-pointer"
+           onclick="openFolder('${r.id}')">
+        <div class="flex items-start justify-between mb-4">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background:${r.color}20;">
+            <span class="material-symbols-outlined text-3xl" style="color:${r.color}">folder</span>
+          </div>
+          <span class="text-xs font-bold px-2 py-1 rounded-full" style="background:${r.color}20;color:${r.color}">${
+            {alta:'🔴 Alta',media:'🟡 Media',baja:'🟢 Baja'}[r.prioridad]||'Media'
+          }</span>
+        </div>
+        <h3 class="font-black text-on-surface text-sm mb-1 truncate">${escHtml(r.nombre)}</h3>
+        <p class="text-xs text-gray-400 mb-3">${r.creditos} cr · ${r.ponderacion}% pond</p>
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-500 font-bold">${count} archivo${count!==1?'s':''}</span>
+          <div class="flex-1 h-2 bg-gray-100 rounded-full mx-3 overflow-hidden">
+            <div class="h-full rounded-full" style="width:${r.dominio||0}%;background:${r.color}"></div>
+          </div>
+          <span class="text-xs font-black" style="color:${r.color}">${r.dominio||0}%</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openFolder(ramoId) {
+  state.currentFolderRamoId = ramoId;
+  const ramo = DB.getRamos().find(r => r.id === ramoId);
+  if (!ramo) return;
+
+  document.getElementById('vault-folders-view').classList.add('hidden');
+  document.getElementById('vault-files-view').classList.remove('hidden');
+  document.getElementById('current-folder-name').textContent = ramo.nombre;
+  document.getElementById('current-folder-dot').style.background = ramo.color;
+
+  renderArchivosFolder(ramoId);
+}
+
+function backToFolders() {
+  state.currentFolderRamoId = null;
+  document.getElementById('vault-folders-view').classList.remove('hidden');
+  document.getElementById('vault-files-view').classList.add('hidden');
+}
+
+function renderArchivosFolder(ramoId) {
+  const archivos = DB.getArchivos().filter(a => a.ramo_id === ramoId);
+  const list = document.getElementById('archivos-list');
+  if (!archivos.length) {
+    list.innerHTML = `<div class="col-span-12 text-center py-12">
+      <span class="material-symbols-outlined text-5xl text-gray-300">upload_file</span>
+      <p class="text-gray-400 mt-3">No hay archivos aún. ¡Sube tus apuntes arriba!</p>
+    </div>`;
+    return;
+  }
+
+  const extIcon = { pdf:'picture_as_pdf', docx:'article', txt:'text_snippet', png:'image', jpg:'image', jpeg:'image' };
+  const extColor = { pdf:'red', docx:'blue', txt:'gray', png:'purple', jpg:'purple', jpeg:'purple' };
+
+  list.innerHTML = archivos.map(a => {
+    const ext = (a.nombre.split('.').pop() || '').toLowerCase();
+    const icon = extIcon[ext] || 'insert_drive_file';
+    const color = extColor[ext] || 'gray';
+    const size = a.size > 1024*1024 ? (a.size/1024/1024).toFixed(1)+'MB' : Math.round(a.size/1024)+'KB';
+    return `
+      <div class="col-span-12 md:col-span-6 xl:col-span-4">
+        <div class="bg-white p-5 rounded-2xl border-2 border-gray-200 border-b-4 border-gray-300 hover:border-primary hover:translate-y-[-2px] transition-all">
+          <div class="flex items-start gap-4">
+            <div class="w-14 h-14 bg-${color}-50 text-${color}-500 rounded-xl flex items-center justify-center shrink-0 border-2 border-${color}-100">
+              <span class="material-symbols-outlined text-3xl">${icon}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-bold text-on-surface text-sm truncate" title="${escHtml(a.nombre)}">${escHtml(a.nombre)}</h4>
+              <p class="text-xs text-gray-400 mt-0.5">${size} · ${a.fecha}</p>
+              <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-xs bg-surface-container text-on-surface-variant font-bold">${a.tipo || 'Apuntes'}</span>
+            </div>
+            <button onclick="deleteArchivo('${a.id}')" class="text-gray-300 hover:text-red-500 transition-colors shrink-0">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-drop-zone').classList.remove('border-primary');
+  const files = Array.from(e.dataTransfer.files);
+  files.forEach(f => processFile(f));
+}
+
+function handleFileSelect(input) {
+  Array.from(input.files).forEach(f => processFile(f));
+  input.value = '';
+}
+
+function processFile(file) {
+  if (!state.currentFolderRamoId) { showToast('Abre una carpeta primero', 'error'); return; }
+  const maxSize = 32 * 1024 * 1024;
+  if (file.size > maxSize) { showToast('Archivo demasiado grande (máx 32MB)', 'error'); return; }
+
+  const tipo = document.getElementById('upload-tipo').value;
+  const archivos = DB.getArchivos();
+  const nuevo = {
+    id: uid(),
+    nombre: file.name,
+    size: file.size,
+    tipo,
+    ramo_id: state.currentFolderRamoId,
+    fecha: new Date().toLocaleDateString('es-CL'),
+  };
+  archivos.push(nuevo);
+  DB.setArchivos(archivos);
+
+  showToast(`"${file.name}" subido correctamente`);
+  renderArchivosFolder(state.currentFolderRamoId);
+  loadDashboard_stats();
+}
+
+function deleteArchivo(id) {
+  if (!confirm('¿Eliminar este archivo?')) return;
+  const archivos = DB.getArchivos().filter(a => a.id !== id);
+  DB.setArchivos(archivos);
+  showToast('Archivo eliminado');
+  if (state.currentFolderRamoId) renderArchivosFolder(state.currentFolderRamoId);
+}
+
+function loadDashboard_stats() {
+  // Solo actualiza contadores sin recargar todo
+  document.getElementById('stat-archivos').textContent = DB.getArchivos().length;
+}
+
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+function loadConfig() {
+  const cfg = DB.getConfig();
+  const ramos = DB.getRamos();
+  state.ramos = ramos;
+  state.config = cfg;
+
+  if (cfg.nombre_alumno) document.getElementById('cfg-nombre').value = cfg.nombre_alumno;
+  if (cfg.fecha_examen) document.getElementById('cfg-fecha').value = cfg.fecha_examen;
+  setHoras(cfg.horas_diarias || 3);
+  renderCfgRamos();
+}
+
+function setHoras(h) {
+  state.horasConfig = h;
+  document.querySelectorAll('.horas-btn').forEach(b => {
+    const active = parseInt(b.dataset.h) === h;
+    b.className = `horas-btn flex-1 py-3 border-2 rounded-xl font-bold text-sm transition-all ${
+      active ? 'border-primary bg-primary/5 border-b-4 border-primary/40 text-primary'
+              : 'border-gray-200 border-b-4 border-gray-300 hover:border-primary'}`;
+  });
+}
+
+function saveConfig() {
+  const cfg = {
+    nombre_alumno: document.getElementById('cfg-nombre').value.trim(),
+    fecha_examen: document.getElementById('cfg-fecha').value,
+    horas_diarias: state.horasConfig,
+  };
+  DB.setConfig(cfg);
+  state.config = cfg;
+  if (cfg.nombre_alumno) {
+    document.getElementById('sidebar-nombre').textContent = cfg.nombre_alumno;
+  }
+  showToast('Configuración guardada');
+}
+
+function addRamo() {
+  const nombre = document.getElementById('ramo-nombre').value.trim();
+  if (!nombre) { showToast('Ingresa el nombre del ramo', 'error'); return; }
+  const ramos = DB.getRamos();
+  const nuevo = {
+    id: uid(),
+    nombre,
+    creditos: parseInt(document.getElementById('ramo-creditos').value) || 8,
+    ponderacion: parseInt(document.getElementById('ramo-pond').value) || 25,
+    color: document.getElementById('ramo-color').value,
+    prioridad: document.getElementById('ramo-prioridad').value,
+    dominio: 0,
+  };
+  ramos.push(nuevo);
+  DB.setRamos(ramos);
+  state.ramos = ramos;
+  document.getElementById('ramo-nombre').value = '';
+  showToast(`Ramo "${nombre}" agregado`);
+  renderCfgRamos();
+}
+
+function deleteRamo(id) {
+  if (!confirm('¿Eliminar este ramo? También se eliminarán sus archivos asociados.')) return;
+  let ramos = DB.getRamos().filter(r => r.id !== id);
+  DB.setRamos(ramos);
+  // Eliminar archivos del ramo
+  let archivos = DB.getArchivos().filter(a => a.ramo_id !== id);
+  DB.setArchivos(archivos);
+  state.ramos = ramos;
+  showToast('Ramo eliminado');
+  renderCfgRamos();
+}
+
+function openEditModal(id) {
+  const ramo = DB.getRamos().find(r => r.id === id);
+  if (!ramo) return;
+  document.getElementById('edit-ramo-id').value = ramo.id;
+  document.getElementById('edit-ramo-nombre').value = ramo.nombre;
+  document.getElementById('edit-ramo-creditos').value = ramo.creditos;
+  document.getElementById('edit-ramo-pond').value = ramo.ponderacion;
+  document.getElementById('edit-ramo-color').value = ramo.color;
+  document.getElementById('edit-ramo-prioridad').value = ramo.prioridad;
+  document.getElementById('edit-ramo-dominio').value = ramo.dominio || 0;
+  document.getElementById('modal-edit').classList.remove('hidden');
+}
+
+function closeEditModal() {
+  document.getElementById('modal-edit').classList.add('hidden');
+}
+
+function saveEditRamo() {
+  const id = document.getElementById('edit-ramo-id').value;
+  const ramos = DB.getRamos();
+  const idx = ramos.findIndex(r => r.id === id);
+  if (idx === -1) return;
+  ramos[idx] = {
+    ...ramos[idx],
+    nombre: document.getElementById('edit-ramo-nombre').value.trim() || ramos[idx].nombre,
+    creditos: parseInt(document.getElementById('edit-ramo-creditos').value) || ramos[idx].creditos,
+    ponderacion: parseInt(document.getElementById('edit-ramo-pond').value) || ramos[idx].ponderacion,
+    color: document.getElementById('edit-ramo-color').value,
+    prioridad: document.getElementById('edit-ramo-prioridad').value,
+    dominio: Math.max(0, Math.min(100, parseInt(document.getElementById('edit-ramo-dominio').value) || 0)),
+  };
+  DB.setRamos(ramos);
+  state.ramos = ramos;
+  closeEditModal();
+  showToast('Ramo actualizado');
+  renderCfgRamos();
+}
+
+function renderCfgRamos() {
+  const list = document.getElementById('cfg-ramos-list');
+  const ramos = DB.getRamos();
+  if (!ramos.length) {
+    list.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">No hay ramos aún. ¡Agrega el primero!</p>';
+    return;
+  }
+  const prioIcon = { alta: '🔴', media: '🟡', baja: '🟢' };
+  list.innerHTML = ramos.map(r => `
+    <div class="flex items-center gap-3 p-3 rounded-xl bg-surface-container hover:bg-surface-container-high transition-all">
+      <div class="w-3 h-3 rounded-full shrink-0" style="background:${r.color}"></div>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-sm text-on-surface truncate">${escHtml(r.nombre)}</p>
+        <p class="text-xs text-gray-400">${prioIcon[r.prioridad]||'🟡'} ${r.ponderacion}% pond · ${r.creditos} cr</p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="text-xs font-black px-2 py-0.5 rounded-full" style="background:${r.color}20;color:${r.color}">${r.dominio || 0}%</span>
+        <button onclick="openEditModal('${r.id}')" class="text-gray-400 hover:text-primary transition-colors">
+          <span class="material-symbols-outlined text-sm">edit</span>
+        </button>
+        <button onclick="deleteRamo('${r.id}')" class="text-gray-300 hover:text-red-500 transition-colors">
+          <span class="material-symbols-outlined text-sm">delete</span>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+(function init() {
+  const cfg = DB.getConfig();
+  if (cfg.nombre_alumno) {
+    document.getElementById('sidebar-nombre').textContent = cfg.nombre_alumno;
+  }
+  navigate('dashboard');
+})();
+</script>
+</body>
+</html>
